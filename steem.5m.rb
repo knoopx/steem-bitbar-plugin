@@ -9,6 +9,8 @@
 
 require 'json'
 require 'open-uri'
+require 'base64'
+
 json = JSON.parse(open("https://api.coinmarketcap.com/v1/ticker/steem/").read)[0]
 
 IMAGE_UP = "iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABmJLR0QAyQACAALwzISXAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH4AQHACkSBTjB+AAAALNJREFUOMvVk70NAjEMhb87WYiGBZAQU7ABNSVSWpZgEEagsJDoKBELUCEKFuBuCKTw0xyQC0lICe5i+/k9/wT+3opUUJQhcAUqa8I5ZQT4tANwioGTCkQZA9vmOQE2oUJFhL0DXBz33RpKUfCLfLTQJMx9IlEWuQr6QB3prGtNS1lwiMvEYo7ekNsKRBkB+y+rH1hDFVOwy7ids+gbVzrsM6CXeYDTF85xroB1ZoHb73ymB5RhJkpZTihGAAAAAElFTkSuQmCC"
@@ -26,3 +28,12 @@ puts "---"
 puts "1h Change: %s%" % [json["percent_change_1h"]]
 puts "24h Change: %s%" % [json["percent_change_24h"]]
 puts "7d Change: %s%" % [json["percent_change_7d"]]
+
+puts "---"
+series = JSON.parse(open("https://api.coinmarketcap.com/v1/datapoints/steem/").read)["price_usd"]
+labels = "0:%7C" + series.map{|p| Time.at(p.first / 1000).strftime("%d%%20%b") }.select.with_index{|_, i| i % 15 == 0}.join("%7C")
+points = series.map(&:last)
+max = points.max
+chart_url = "https://chart.googleapis.com/chart?chs=250x125&cht=ls&chco=224499&chf=bg,s,FFFFFF00&chm=B,76A4FB,0,0,0&chds=a&chxt=x,y&chxl=#{labels}&chd=t:#{points.join(",")}"
+data = Base64.strict_encode64(open(chart_url).read)
+puts "| image=#{data}"
